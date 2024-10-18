@@ -15,7 +15,8 @@ async function createUser( username, password ) {
         password: await bcrypt.hash(password, 5)
     }
 
-    await prisma.user.create({ data: user })
+    const result = await prisma.user.create({ data: user })
+    return result
 }
 
 async function authenticate( username, password ) {
@@ -32,7 +33,30 @@ async function authenticate( username, password ) {
     return { token }
 }
 
+const findUserByToken = async (token) => {
+    let id
+
+    try {
+        const payload = await jwt.verify(token, JWT)
+        id = payload.id
+    } catch (error) {
+        error = Error('not authorized')
+        error.status = 401
+        throw error
+    }
+}
+
+const isLoggedIn = async (req, res, next) => {
+    try {
+        req.user = await findUserByToken(req.headers.authorization)
+        next()        
+    } catch (error) {
+        next(error)
+    }
+}
+
 module.exports = {
     createUser,
-    authenticate
+    authenticate,
+    isLoggedIn
 }

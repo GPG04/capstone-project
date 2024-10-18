@@ -1,5 +1,6 @@
 const {
-    createUser
+    createUser,
+    isLoggedIn
     } = require("../prisma/db")
 
 const router = require("express").Router()
@@ -40,9 +41,10 @@ router.get("/:id", async (req, res, next) => {
 router.post("/", async (req, res, next) => {
     try {
         const { username, password } = req.body
-       const user = createUser( username, password )
+        console.log(req.body)
+         result = createUser( username, password )
 
-        res.json(user)
+        res.json(result)
     } catch (error) {
         next(error)
     }
@@ -107,36 +109,49 @@ router.post("/:id/items", async (req, res, next) => {
     try {
         const id = +req.params.id
 
-        const user = await prisma.user.findUnique({ where: { id } })
+        /*const user = await prisma.user.findUnique({ where: { id } })
         if (!user) {
             return next({
                 status: 404,
                 message: `Could not find user with id ${id}.`
             })
-        }
+        }*/
 
-        const { name, image, textContent } = req.body
-        if (!name) {
+        const { 
+            name,
+            image,
+            description,
+            textContent
+             } = req.body
+             console.log(req.body)
+        
+             /*if (!name) {
             return next({
                 status: 400,
                 message: "Item must have a name."
             })
-        }
-
-        const item = await prisma.item.create({
-            data: { name, image, textContent, user: { connect: { id } } }
+        }*/
+        
+        const result = await prisma.item.create({
+            data: {
+                name,
+                image,
+                description,
+                textContent,
+                user: { connect: { id } }
+                }
         })
 
-        res.json(item)
-    } catch {
-        next()
+        res.json(result)
+    } catch (error) {
+        next(error)
     }
 })
 
 // returns an array of items from a certain user
 router.get("/:id/items", async (req, res, next) => {
     try {
-        const [id, userId] = +req.params.id
+        const id = +req.params.id
 
         const user = await prisma.user.findUnique({ where: { id } })
         if (!user) {
@@ -146,7 +161,7 @@ router.get("/:id/items", async (req, res, next) => {
             })
         }
 
-        const items = await prisma.item.findMany({ where: { userId } })
+        const items = await prisma.item.findMany({ where: { userId: id } })
 
         res.json(items)
     } catch {
@@ -157,7 +172,7 @@ router.get("/:id/items", async (req, res, next) => {
 // Returns an array of reviews from a certain user
 router.get("/:id/reviews", async (req, res, next) => {
     try {
-        const [id, userId] = +req.params.id
+        const id = +req.params.id
 
         const user = await prisma.user.findUnique({ where: { id } })
         if (!user) {
@@ -167,7 +182,7 @@ router.get("/:id/reviews", async (req, res, next) => {
             })
         }
 
-        const reviews = await prisma.review.findMany({ where: { userId } })
+        const reviews = await prisma.review.findMany({ where: { userId: id } })
         res.json(reviews)
     } catch {
         next()
@@ -177,7 +192,7 @@ router.get("/:id/reviews", async (req, res, next) => {
 //Returns an array of comments from a certain user
 router.get("/:id/comments", async (req, res, next) => {
     try {
-        const [id, userId] = +req.params.id
+        const id = +req.params.id
 
         const user = await prisma.user.findUnique({ where: { id } })
         if (!user) {
@@ -187,7 +202,7 @@ router.get("/:id/comments", async (req, res, next) => {
             })
         }
 
-        const comments = await prisma.comment.findMany({ where: { userId } })
+        const comments = await prisma.comment.findMany({ where: { userId: id } })
         res.json(comments)
     } catch (error) {
         

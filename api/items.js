@@ -8,15 +8,17 @@ router.get("/", async (req, res, next) => {
     try {
         const items = await prisma.item.findMany()
         res.json(items)
-    } catch (error) {
-        next(error)
+        console.log(res.json)
+    } catch {
+        next()
     }
 })
 
+/*
 // Returns an array of reviews on a certain item
 router.get("/:id/reviews", async (req, res, next) => {
     try {
-        const [id, itemId] = +req.params.id
+        const id = +req.params.id
 
         const item = await prisma.item.findUnique({ where: { id } })
         if (!item) {
@@ -26,9 +28,11 @@ router.get("/:id/reviews", async (req, res, next) => {
             })
         }
 
-        const reviews = await prisma.review.findMany({ where: { itemId } })
+        const reviews = await prisma.review.findMany({ where: { itemId: id } })
         res.json(reviews)
     } catch {
         next()
     }
 })
+
+*/

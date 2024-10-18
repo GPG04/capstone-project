@@ -14,7 +14,20 @@ const seed = async () => {
         createUser( "boots",  "password4" )
         ])
     }
-    await seedUsers()
+
+    async function seedItem() {
+      const item = {
+        name: "test",
+        image: "test",
+        description: "test",
+        textContent: "test",
+        userId: 1
+      }
+      await prisma.item.create({ data: item })
+    }
+
+  await seedUsers()
+  await seedItem()
 }
     
 seed()
