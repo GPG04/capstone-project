@@ -1,12 +1,14 @@
 const {
     createUser,
-    isLoggedIn
+    isLoggedIn,
+    authenticate
     } = require("../prisma/db")
 
 const router = require("express").Router()
 module.exports = router
 
 const prisma = require("../prisma")
+const { verify } = require("jsonwebtoken")
 
 // Returns an array of all users
 router.get("/", async (req, res, next) => {
@@ -22,7 +24,7 @@ router.get("/", async (req, res, next) => {
 router.get("/:id", async (req, res, next) => {
     try {
         const id = +req.params.id
-
+        
         const user = await prisma.user.findUnique({ where: { id } })
         if (!user) {
             return next({
@@ -41,7 +43,6 @@ router.get("/:id", async (req, res, next) => {
 router.post("/", async (req, res, next) => {
     try {
         const { username, password } = req.body
-        console.log(req.body)
          result = createUser( username, password )
 
         res.json(result)
@@ -97,7 +98,6 @@ router.delete("/:id", async (req, res, next) => {
         }
 
         await prisma.user.delete({ where: { id } })
-
         res.sendStatus(204)
     } catch {
         next()
@@ -109,13 +109,13 @@ router.post("/:id/items", async (req, res, next) => {
     try {
         const id = +req.params.id
 
-        /*const user = await prisma.user.findUnique({ where: { id } })
+        const user = await prisma.user.findUnique({ where: { id } })
         if (!user) {
             return next({
                 status: 404,
                 message: `Could not find user with id ${id}.`
             })
-        }*/
+        }
 
         const { 
             name,
@@ -123,14 +123,13 @@ router.post("/:id/items", async (req, res, next) => {
             description,
             textContent
              } = req.body
-             console.log(req.body)
         
-             /*if (!name) {
+             if (!name) {
             return next({
                 status: 400,
                 message: "Item must have a name."
             })
-        }*/
+        }
         
         const result = await prisma.item.create({
             data: {
@@ -143,8 +142,8 @@ router.post("/:id/items", async (req, res, next) => {
         })
 
         res.json(result)
-    } catch (error) {
-        next(error)
+    } catch {
+        next()
     }
 })
 

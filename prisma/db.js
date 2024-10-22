@@ -20,16 +20,15 @@ async function createUser( username, password ) {
 }
 
 async function authenticate( username, password ) {
-
     const user = await prisma.user.findUnique({ where: { username } })
+
     if (!user.username || await bcrypt.compare(password, user.password) === false) {
         const error = Error("not authorized")
         error.status = 401
         throw error
     }
 
-    const token = await jwt.sign({ id: user.id, JWT })
-    console.log(token)
+    const token = await jwt.sign({ id: user.id }, JWT )
     return { token }
 }
 
@@ -51,6 +50,7 @@ const isLoggedIn = async (req, res, next) => {
         req.user = await findUserByToken(req.headers.authorization)
         next()        
     } catch (error) {
+        console.error(error)
         next(error)
     }
 }

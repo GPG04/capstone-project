@@ -9,7 +9,6 @@ app.use(require("morgan")("dev"));
 app.use("/api", require("./api"));
 
 app.use((error, req, res, next) => {
-    console.error(error.stack)
     res.status(500).send({ error: error })
 });
 

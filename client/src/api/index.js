@@ -1,7 +1,10 @@
+const baseUrl = "http://localhost:3000/api"
+
 export async function fetchAllItems() {
     try {
-        const response = await fetch('/api/items')
+        const response = await fetch(`${baseUrl}/items`)
         const result = await response.json()
+        console.log(result)
         return result
     } catch (error) {
         console.error(error)
@@ -10,7 +13,7 @@ export async function fetchAllItems() {
 
 export async function fetchSingleItem( id ) {
     try {
-        const response = await fetch(`/api/items/${id}`)
+        const response = await fetch(`${baseUrl}/items/${id}`)
         const result = await response.json()
         return result
     } catch (error) {
@@ -20,7 +23,7 @@ export async function fetchSingleItem( id ) {
 
 export async function fetchReviews( id ) {
     try {
-        const response = await fetch(`/api/items/${id}/reviews`)
+        const response = await fetch(`${baseUrl}/items/${id}/reviews`)
         const result = await response.json()
         return result
     } catch (error) {
@@ -28,9 +31,11 @@ export async function fetchReviews( id ) {
     }
 }
 
-export async function fetchComments( itemId, reviewId ) {
+export async function fetchComments( id ) {
     try {
-        const response = await fetch(`/api/items/${itemId}/reviews/${reviewId}/comments`)
+        const response = await fetch(`${baseUrl}/reviews/${id}/comments`)
+        const result = await response.json()
+        return result
     } catch (error) {
         console.error(error)
     }

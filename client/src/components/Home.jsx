@@ -11,8 +11,7 @@ export default function Home() {
     useEffect(() => {
         async function getAllItems() {
             const response = await fetchAllItems()
-            console.log(response)
-            setItems(response.item)
+            setItems(response)
         }
         getAllItems()
     }, [])
@@ -24,7 +23,6 @@ export default function Home() {
             setSearchParam={setSearchParam}/>
             <ItemList 
             items={items}
-            setItems={setItems}
             searchParam={searchParam}
             error={error}/>
         </>

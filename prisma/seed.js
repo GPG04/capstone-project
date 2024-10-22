@@ -3,6 +3,9 @@ createUser
 } = require("./db")
 
 const prisma = require("../prisma");
+const bcrypt = require('bcrypt')
+const { v4: uuidv4 } = require('uuid')
+const devId = uuidv4()
 
 const seed = async () => {
 
@@ -15,18 +18,31 @@ const seed = async () => {
         ])
     }
 
+    async function devAccount() {
+      
+      const user = {
+        id: devId,
+        username: "GPG04",
+        password: await bcrypt.hash("spaghetti", 5)
+      }
+
+      await prisma.user.create({ data: user })
+    }
+
     async function seedItem() {
+
       const item = {
         name: "test",
         image: "test",
         description: "test",
         textContent: "test",
-        userId: 1
+        userId: devId
       }
       await prisma.item.create({ data: item })
     }
 
   await seedUsers()
+  await devAccount()
   await seedItem()
 }
     

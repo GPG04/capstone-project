@@ -14,8 +14,8 @@ datasource db {
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  username String
+  id String @id @default(uuid())
+  username String @unique
   password String
   items Item[]
   reviews Review[]
@@ -23,32 +23,32 @@ model User {
 }
 
 model Item {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
   name String
   image String
   description String
   textContent String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
+  userId String
   reviews Review[]
 }
 
 model Review {
-  id Int @default(autoincrement()) @unique
+  id String @id @default(uuid())
   rating Int
   textContent String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
+  userId String
   item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  itemId Int
+  itemId String
   comments Comment[]
 }
 
 model Comment {
-  id Int @default(autoincrement()) @unique
+  id String @id @default(uuid())
   textContent String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
+  userId String
   review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  reviewId Int
+  reviewId String
 }
