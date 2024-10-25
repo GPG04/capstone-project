@@ -20,33 +20,37 @@ model User {
   items Item[]
   reviews Review[]
   comments Comment[]
+  isAdmin Boolean @default(false)
 }
 
 model Item {
   id String @id @default(uuid())
   name String
   image String
+  header String
   description String
-  textContent String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
   reviews Review[]
+  averageRating Int?
 }
 
 model Review {
   id String @id @default(uuid())
   rating Int
-  textContent String
+  text String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
   item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId String
   comments Comment[]
+
+  @@unique([userId, itemId])
 }
 
 model Comment {
   id String @id @default(uuid())
-  textContent String
+  text String
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
   review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)

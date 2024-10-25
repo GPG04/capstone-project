@@ -18,13 +18,15 @@ export default function Home() {
 
     return (
         <>
-            <SearchBar
-            searchParam={searchParam}
-            setSearchParam={setSearchParam}/>
-            <ItemList 
-            items={items}
-            searchParam={searchParam}
-            error={error}/>
+            <div>
+                <SearchBar
+                searchParam={searchParam}
+                setSearchParam={setSearchParam}/>
+                <ItemList 
+                items={items}
+                searchParam={searchParam}
+                error={error}/>
+            </div>
         </>
     )
 }

@@ -1,0 +1,19 @@
+#searchBar {
+    margin-left: 100px;
+}
+
+#itemList {
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+}
+
+#mainContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+#navbar {
+    display: flex;
+    justify-content: space-around;
+    width: 125px;
+}

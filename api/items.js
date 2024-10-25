@@ -1,3 +1,7 @@
+const {
+    isLoggedIn
+} = require("../prisma/db")
+
 const router = require("express").Router()
 module.exports = router
 
@@ -16,9 +20,9 @@ router.get("/", async (req, res, next) => {
 // Returns an array of reviews on a certain item
 router.get("/:id/reviews", async (req, res, next) => {
     try {
-        const id = +req.params.id
-
+        const id = req.params.id
         const item = await prisma.item.findUnique({ where: { id } })
+
         if (!item) {
             return next({
                 status: 404,
@@ -34,99 +38,113 @@ router.get("/:id/reviews", async (req, res, next) => {
 })
 
 // Updates an item by id
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", isLoggedIn, async (req, res, next) => {
     try {
-        const id = +req.params.id
+        const id = req.params.id
+        const item = await prisma.item.findUnique({ where: { id } })
+        
+        if (!item) {
+            const error = Error(`Could not find item with id ${id}.`)
+            error.status = 404
+            throw error
+        }
 
-        const itemExists = await prisma.item.findUnique({ where: { id } })
-        if (!itemExists) {
-            return next({
-                status: 404,
-                message: `Could not find item with id ${id}.`
-            })
+        if (
+            req.user.id !== item.userId &&
+            req.user.isAdmin === false
+        ) {
+            const error = Error('not authorized')
+            error.status = 401
+            throw error
         }
 
         const {
             name,
             image,
             description,
-            textContent
+            header
         } = req.body
 
-        const item = await prisma.item.update({
-            where: { id },
-            data: {
-                name,
-                image,
-                description,
-                textContent
-            }
-        })
-
-        res.json(item)
-    } catch {
-        next()
+        res.json(
+            await prisma.item.update({
+                where: { id },
+                data: {
+                    name,
+                    image,
+                    description,
+                    header
+                }
+            })
+        )
+    } catch (error) {
+        next(error)
     }
 })
 
 // Deletes an item by id
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", isLoggedIn, async (req, res, next) => {
     try {
-        id = +req.params.id
+        id = req.params.id
+        const item = await prisma.item.findUnique({ where: { id } })
+        
+        if (!item) {
+            const error = Error(`Could not find item with id ${id}.`)
+            error.status = 404
+            throw error
+        }
 
-        const itemExists = await prisma.user.findUnique({ where: { id } })
-        if (!itemExists) {
-            return next({
-                status: 404,
-                message: `Could not find item with id ${id}`
-            })
+        if (
+            req.user.id !== item.userId &&
+            req.user.isAdmin === false
+        ) {
+            const error = Error('not authorized')
+            error.status = 401
+            throw error
         }
 
         await prisma.item.delete({ where: { id } })
-
         res.sendStatus(204)
-    } catch {
-        next()
+    } catch (error) {
+        next(error)
     }
 })
 
 // Creates a review for an item with a certain id
-router.post("/:id/reviews", async (req, res, next) => {
+router.post("/:id/reviews", isLoggedIn, async (req, res, next) => {
     try {
-        const id = +req.params.id
-
+        const id = req.params.id
+        const userId = req.user.id
         const item = await prisma.item.findUnique({ where: { id } })
+
         if (!item) {
-            return next({
-                status: 404,
-                message: `Could not find item with id ${id}`
-            })
+            const error = Error(`Could not find item with id ${id}.`)
+            error.status = 404
+            throw error
         }
 
         const {
             rating,
-            textContent,
-            userId
+            text
         } = req.body
 
-        if (!rating || !textContent) {
+        if (!rating || !text) {
             return next({
                 status: 400,
                 message: "Review data is incomplete"
             })
         }
 
-        const result = await prisma.item.create({
+        res.json(
+            await prisma.review.create({
             data: {
                 rating,
-                textContent,
-                item: { connect: { id } },
-                user: { connect: { userId } }
+                text,
+                user: { connect: { id: userId } },
+                item: { connect: { id } }
             }
         })
-
-        res.json(result)
-    } catch {
-        next()
+    )
+    } catch (error) {
+        next(error)
     }
 })

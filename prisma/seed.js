@@ -6,44 +6,32 @@ const prisma = require("../prisma");
 const bcrypt = require('bcrypt')
 const { v4: uuidv4 } = require('uuid')
 const devId = uuidv4()
+const MY_PASSWORD = process.env.MY_PASSWORD
 
 const seed = async () => {
 
     async function seedUsers() {
-        await Promise.all([
-        createUser( "Logan", "password1" ),
-        createUser( "chase", "password2" ),
-        createUser(  "lincoln",  "password3" ),
-        createUser( "boots",  "password4" )
-        ])
-    }
+        const users = [
+          { username: "Lincoln", password: "password1" },
+          { username: "Logan", password: "password2" },
+          { username: "Chase", password: "password3" },
+          { username: "GPG04", password: MY_PASSWORD, isAdmin: true }
+        ]
 
-    async function devAccount() {
-      
-      const user = {
-        id: devId,
-        username: "GPG04",
-        password: await bcrypt.hash("spaghetti", 5)
-      }
+        users.forEach(async (user) => {
+          let hash = await bcrypt.hash( user.password, 5 )
 
-      await prisma.user.create({ data: user })
-    }
-
-    async function seedItem() {
-
-      const item = {
-        name: "test",
-        image: "test",
-        description: "test",
-        textContent: "test",
-        userId: devId
-      }
-      await prisma.item.create({ data: item })
+          await prisma.user.create({
+            data: {
+              username: user.username,
+              password: hash,
+              isAdmin: user.isAdmin
+            }
+          })
+        })
     }
 
   await seedUsers()
-  await devAccount()
-  await seedItem()
 }
     
 seed()

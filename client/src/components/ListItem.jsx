@@ -1,4 +1,5 @@
 import React from 'react'
+import '../App.css'
 
 export default function listItem({ item }) {
 
@@ -6,8 +7,8 @@ export default function listItem({ item }) {
         <div key={item.id} className="itemDiv">
             <img src={item.image} alt="image" />
             <div>
-                <p>{image.name}</p>
-                <p>{image.header}</p>
+                <p>{item.name}</p>
+                <p>{item.header}</p>
             </div>
         </div>
     )

@@ -1,3 +1,7 @@
+const {
+    isLoggedIn
+} = require("../prisma/db")
+
 const router = require("express").Router()
 module.exports = router
 
@@ -16,64 +20,79 @@ router.get("/", async (req, res, next) => {
 // Returns a comment with a certain id
 router.get("/:id", async (req, res, next) => {
     try {
-        const id = +req.params.id
-
+        const id = req.params.id
         const comment = await prisma.comment.findUnique({ where: { id } })
+
         if (!comment) {
-            return next({
-                status: 404,
-                message: `Could not find comment with id ${id}`
-            })
+            error = Error(`Could not find comment with id ${id}.`)
+            error.status = 404
+            throw error
         }
 
         res.json(comment)
-    } catch {
-        next()
+    } catch (error) {
+        next(error)
     }
 })
 
 // Updates a comment by id
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", isLoggedIn, async (req, res, next) => {
     try {
-        const id = +req.params.id
-
-        const commentExists = await prisma.comment.findUnique({ where: { id } })
-        if (!commentExists) {
-            return next({
-                status: 404,
-                message: `Could not find comment with id ${id}`
-            })
+        const id = req.params.id
+        const comment = await prisma.comment.findUnique({ where: { id } })
+        
+        if (!comment) {
+            error = Error(`Could not find comment with id ${id}.`)
+            error.status = 404
+            throw error
         }
 
-        const { textContent } = req.body
+        if (
+            req.user.id !== comment.userId &&
+            req.user.isAdmin === false
+        ) {
+            error = Error('not authorized')
+            error.status = 401
+            throw error
+        }
 
-        const comment = await prisma.comment.update({
-            where: { id },
-            data: { textContent }
-        })
+        const { text } = req.body
 
-        res.json(comment)
-    } catch {
-        next()
+        res.json(
+            await prisma.comment.update({
+                where: { id },
+                data: { text }
+            })
+        )
+    } catch (error) {
+        next(error)
     }
 })
 
 // Deletes a comment by id
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", isLoggedIn, async (req, res, next) => {
     try {
-        const id = +req.params.id
+        const id = req.params.id
+        const comment = await prisma.comment.findUnique({ where: { id } })
+        
+        if (!comment) {
+            error = Error(`Could not find comment with id ${id}.`)
+            error.status = 404
+            throw error
+        }
 
-        const commentExists = await prisma.comment.findUnique({ where: { id } })
-        if (!commentExists) {
-            return next({
-                status: 404,
-                message: `Could not find comment with id ${id}`
-            })
+        if (
+            req.user.id !== comment.userId &&
+            req.user.isAdmin === false
+        ) {
+            const error = Error('not authorized')
+            error.status = 401
+            throw error
         }
 
         await prisma.comment.delete({ where: { id } })
         res.sendStatus(204)
-    } catch {
-        next()  
+    } catch (error) {
+        next(error)  
     }
 })

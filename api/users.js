@@ -1,7 +1,5 @@
 const {
-    createUser,
-    isLoggedIn,
-    authenticate
+    isLoggedIn
     } = require("../prisma/db")
 
 const router = require("express").Router()
@@ -9,6 +7,7 @@ module.exports = router
 
 const prisma = require("../prisma")
 const { verify } = require("jsonwebtoken")
+const bcrypt = require("bcrypt")
 
 // Returns an array of all users
 router.get("/", async (req, res, next) => {
@@ -23,16 +22,16 @@ router.get("/", async (req, res, next) => {
 // Returns a single user by id
 router.get("/:id", async (req, res, next) => {
     try {
-        const id = +req.params.id
-        
+        const id = req.params.id
         const user = await prisma.user.findUnique({ where: { id } })
+        
         if (!user) {
             return next({
                 status: 404,
                 message: `Could not find user with id ${id}`
             })
         }
-
+        
         res.json(user)
     } catch {
         next()
@@ -43,26 +42,41 @@ router.get("/:id", async (req, res, next) => {
 router.post("/", async (req, res, next) => {
     try {
         const { username, password } = req.body
-         result = createUser( username, password )
+        hash = await bcrypt.hash( password, 5 )
 
-        res.json(result)
+        res.json(
+            await prisma.user.create({
+                data: {
+                    username: username,
+                    password: hash
+                }
+            })
+        )
     } catch (error) {
         next(error)
     }
 })
 
 // Updates a user by id
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", isLoggedIn, async (req, res, next) => {
     try {
-        const id = +req.params.id
-        console.log(id)
+        const id = req.params.id
+        const user = await prisma.user.findUnique({ where: { id } })  
 
-        const userExists = await prisma.user.findUnique({ where: { id } })
-        if (!userExists) {
+        if (!user) {
             return next({
                 status: 404,
-                message: `Could not find author with id ${id}.`
+                message: `Could not find user with id ${id}.`
             })
+        }
+
+        if (
+            req.user.id !== user.id &&
+            req.user.isAdmin === false
+        ) {
+            const error = Error('not authorized')
+            error.status = 401
+            throw error
         }
 
         const { username } = req.body
@@ -73,43 +87,23 @@ router.put("/:id", async (req, res, next) => {
             })
         }
 
-        const user = await prisma.user.update({
-            where: { id },
-            data: { username }
-        })
-
-        res.json(user)
-    } catch {
-        next()
+        res.json(
+            await prisma.user.update({
+                where: { id },
+                data: { username }
+            })
+        )
+    } catch (error){
+        next(error)
     }
 })
 
 // Deletes a user by id
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", isLoggedIn, async (req, res, next) => {
     try {
-        const id = +req.params.id
-
-        const userExists = await prisma.user.findUnique({ where: { id } })
-        if (!userExists) {
-            return next({
-                status: 404,
-                message: `Could not find user with id ${id}`
-            })
-        }
-
-        await prisma.user.delete({ where: { id } })
-        res.sendStatus(204)
-    } catch {
-        next()
-    }
-})
-
-// Creates a new item for the user with the specified id
-router.post("/:id/items", async (req, res, next) => {
-    try {
-        const id = +req.params.id
-
+        const id = req.params.id
         const user = await prisma.user.findUnique({ where: { id } })
+
         if (!user) {
             return next({
                 status: 404,
@@ -117,40 +111,77 @@ router.post("/:id/items", async (req, res, next) => {
             })
         }
 
+        if (
+            req.user.id !== user.id &&
+            req.user.isAdmin === false
+        ) {
+            const error = Error('not authorized')
+            error.status = 401
+            throw error
+        }
+
+        await prisma.user.delete({ where: { id } })
+        res.sendStatus(204)
+    } catch (error) {
+        next(error)
+    }
+})
+
+// Creates a new item for the user with the specified id
+router.post("/:id/items", isLoggedIn, async (req, res, next) => {
+    try {
+        const id = req.params.id
+        const user = await prisma.user.findUnique({ where: { id } })
+        
+        if (!user) {
+            return next({
+                status: 404,
+                message: `Could not find user with id ${id}.`
+            })
+        }
+
+        if (
+            req.user.id !== id &&
+            req.user.isAdmin === false
+        ) {
+            const error = Error('not authorized')
+            error.status = 401
+            throw error
+        }
+
         const { 
             name,
             image,
             description,
-            textContent
+            header
              } = req.body
         
-             if (!name) {
-            return next({
-                status: 400,
-                message: "Item must have a name."
-            })
+        if (!name) {
+            error = Error('Item must have a name.')
+            error.status = 400
+            throw error
         }
-        
-        const result = await prisma.item.create({
-            data: {
-                name,
-                image,
-                description,
-                textContent,
-                user: { connect: { id } }
-                }
-        })
 
-        res.json(result)
-    } catch {
-        next()
+        res.json(
+            await prisma.item.create({
+                data: {
+                    name,
+                    image,
+                    description,
+                    header,
+                    user: { connect: { id } }
+                }
+            })
+        )
+    } catch (error) {
+        next(error)
     }
 })
 
 // returns an array of items from a certain user
 router.get("/:id/items", async (req, res, next) => {
     try {
-        const id = +req.params.id
+        const id = req.params.id
 
         const user = await prisma.user.findUnique({ where: { id } })
         if (!user) {
@@ -171,7 +202,7 @@ router.get("/:id/items", async (req, res, next) => {
 // Returns an array of reviews from a certain user
 router.get("/:id/reviews", async (req, res, next) => {
     try {
-        const id = +req.params.id
+        const id = req.params.id
 
         const user = await prisma.user.findUnique({ where: { id } })
         if (!user) {
@@ -191,7 +222,7 @@ router.get("/:id/reviews", async (req, res, next) => {
 //Returns an array of comments from a certain user
 router.get("/:id/comments", async (req, res, next) => {
     try {
-        const id = +req.params.id
+        const id = req.params.id
 
         const user = await prisma.user.findUnique({ where: { id } })
         if (!user) {

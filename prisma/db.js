@@ -43,6 +43,14 @@ const findUserByToken = async (token) => {
         error.status = 401
         throw error
     }
+
+    const response = await prisma.user.findUnique({ where: { id } })
+    if (!response) {
+        const error = Error('not authorized')
+        error.status = 401
+        throw error
+    }
+    return response
 }
 
 const isLoggedIn = async (req, res, next) => {
@@ -50,7 +58,6 @@ const isLoggedIn = async (req, res, next) => {
         req.user = await findUserByToken(req.headers.authorization)
         next()        
     } catch (error) {
-        console.error(error)
         next(error)
     }
 }

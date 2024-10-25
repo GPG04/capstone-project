@@ -18,7 +18,6 @@ router.post("/auth/login", async (req, res, next) => {
     try {
         res.send(await authenticate(req.body.username, req.body.password))
     } catch (error) {
-        console.log(error)
         next(error)
     }
 })
@@ -27,7 +26,6 @@ router.get("/auth/me", isLoggedIn, async (req, res, next) => {
     try {
         res.send(req.user)
     } catch (error) {
-        console.error(error)
         next(error)
     }
 })

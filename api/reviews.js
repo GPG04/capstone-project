@@ -1,3 +1,7 @@
+const {
+    isLoggedIn
+} = require('../prisma/db')
+
 const router = require("express").Router()
 module.exports = router
 
@@ -16,7 +20,7 @@ router.get("/"), async (req, res, next) => {
 //Returns an array of comments associated with a certain review
 router.get("/:id/comments", async (req, res, next) => {
     try {
-        const id = +req.params.id
+        const id = req.params.id
 
         const review = await prisma.review.findUnique({ where: { id } })
         if (!review) {
@@ -34,48 +38,65 @@ router.get("/:id/comments", async (req, res, next) => {
 })
 
 // Updates a review by id
-router.put("/:id", async (req, res, next) => {
+router.put("/:id", isLoggedIn, async (req, res, next) => {
     try {
-        const id = +req.params.id
+        const id = req.params.id
+        const review = await prisma.review.findUnique({ where: { id } })
+        
+        if (!review) {
+            const error = Error(`Could not find review with id ${id}.`)
+            error.status = 404
+            throw error
+        }
 
-        const reviewExists = await prisma.review.findUnique({ where: { id } })
-        if (!reviewExists) {
-            return next({
-                status: 404,
-                message: `Could not find user with id ${id}`
-            })
+        if (
+            req.user.id !== review.userId &&
+            req.user.isAdmin === false
+        ) {
+            const error = Error('not authorized')
+            error.status = 401
+            throw error
         }
 
         const {
             rating,
-            textContent
+            text
         } = req.body
 
-        const review = await prisma.review.update({
-            where: { id },
-            data: {
-                rating,
-                textContent
-            }
-        })
-
-        res.json(review)
-    } catch {
-        next()
+        res.json(
+            await prisma.review.update({
+                where: { id },
+                data: {
+                    rating,
+                    text
+                }
+            })
+        )
+    } catch (error) {
+        next(error)
     }
 })
 
 // Deletes a review by id
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", isLoggedIn, async (req, res, next) => {
     try {
-        const id = +req.params.id
-
+        const id = req.params.id
         const review = await prisma.review.findUnique({ where: { id } })
+
         if (!review) {
             return next({
                 status: 404,
                 message: `Could not find review with id ${id}`
             })
+        }
+
+        if (
+            req.user.id !== review.id &&
+            req.user.isAdmin === false
+        ) {
+            const error = Error('not authorized')
+            error.status = 401
+            throw error
         }
 
         await prisma.review.delete({ where: { id } })
@@ -86,30 +107,29 @@ router.delete("/:id", async (req, res, next) => {
 })
 
 // Creates a comment for the review with the specified id
-router.post("/:id/comments", async (req, res, next) => {
+router.post("/:id/comments", isLoggedIn, async (req, res, next) => {
     try {
-        const id = +req.params.id
-
+        const id = req.params.id
+        const userId = req.user.id
         const review = await prisma.review.findUnique({ where: { id } })
+        
         if (!review) {
-            return next({
-                status: 404,
-                message: `Could not find review with id ${id}`
-            })
+            error = Error(`Could not find review with id ${id}.`)
+            error.status = 401
+            throw error
         }
 
-        const { textContent, userId } = req.body
-
-        const result = await prisma.comment.create({
-            data: {
-                textContent,
-                review: { connect: { id } },
-                user: { connect: { userId } }
-            }
-        })
-
-        res.json(result)
-    } catch {
-        next()
+        const { text } = req.body
+        res.json(
+            await prisma.comment.create({
+                data: {
+                    text,
+                    review: { connect: { id } },
+                    user: { connect: { userId } }
+                }
+            })
+        )
+    } catch (error) {
+        next(error)
     }
 })
