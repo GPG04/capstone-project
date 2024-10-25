@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createToken, createUser } from '../api/index'
+import '../App.css'
 
 export default function LogInForm({ auth }) {
     const [username, setUsername] = useState("")
@@ -19,20 +20,22 @@ export default function LogInForm({ auth }) {
 
     return (
         <div>
-            <form>
+            <form id="loginContainer">
                 <input
-                    value={username}
-                    onChange={(ev) => setUsername(ev.target.value)}
-                    placeholder="username"
+                className="username"
+                value={username}
+                onChange={(ev) => setUsername(ev.target.value)}
+                placeholder="username"
                 />
                 <input
+                className="password"
                 type="password"
                 value={password}
                 onChange={(ev) => setPassword(ev.target.value)}
                 placeholder="password"
                 />
-                <button onClick={login}>Login</button>
-                <button onClick={signUp}>Sign Up</button>
+                <button onClick={login} className="loginButton">Login</button>
+                <button onClick={signUp} className="singUpButton">Sign Up</button>
             </form>
         </div>
     )

@@ -18,6 +18,11 @@ function App() {
     }
   }
 
+  const logout = () => {
+    window.localStorage.removeItem("token")
+    setAuth({})
+  }
+
   useEffect(() => {
     verifyAuth()
   }, [])
@@ -27,6 +32,7 @@ function App() {
       <div id="mainContainer">
         <NavBar
         auth={auth}
+        logout={logout}
         />
         <BrowserRouter>
           <Routes>
