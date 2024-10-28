@@ -21,6 +21,46 @@ export async function fetchSingleItem( id ) {
     }
 }
 
+export async function fetchItemsByUser( id ) {
+    try {
+        const response = await fetch(`${baseUrl}/users/${id}/items`)
+        const result = await response.json()
+        return result
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+export async function fetchReviewsByUser( id ) {
+    try {
+        const response = await fetch(`${baseUrl}/users/${id}/reviews`)
+        const result = await response.json()
+        return result
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+export async function fetchCommentsByUser( id ) {
+    try {
+        const response = await fetch(`${baseUrl}/users/${id}/comments`)
+        const result = await response.json()
+        return result
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+export async function fetchSingleUser( id ) {
+    try {
+        const response = await fetch(`${baseUrl}/users/${id}`)
+        const result = await response.json()
+        return result
+    } catch (error) {
+        console.error(error)
+    }
+}
+
 export async function fetchReviews( id ) {
     try {
         const response = await fetch(`${baseUrl}/items/${id}/reviews`)

@@ -15,6 +15,7 @@ function App() {
       setAuth(await authorize())
     } else {
       console.error('not authorized')
+      window.localStorage.removeItem("token")
     }
   }
 
@@ -38,7 +39,7 @@ function App() {
           <Routes>
             <Route path='/' element={<Home />} />
             <Route path='/login' element={<LogInForm auth={auth}/>}/>
-            <Route path='/profile' element={<Profile />}/>
+            <Route path='/profile/:id' element={<Profile auth={auth}/>}/>
           </Routes>
         </BrowserRouter>
       </div>
