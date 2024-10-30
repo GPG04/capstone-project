@@ -8,16 +8,16 @@ module.exports = router
 const prisma = require("../prisma")
 
 //Returns an array of all reviews
-router.get("/"), async (req, res, next) => {
+router.get("/", async (req, res, next) => {
     try {
         const reviews = await prisma.review.findMany()
         res.json(reviews)
     } catch {
         next()
     }
-}
+})
 
-//Returns an array of comments associated with a certain review
+// Get Comments by Review
 router.get("/:id/comments", async (req, res, next) => {
     try {
         const id = req.params.id
@@ -30,10 +30,27 @@ router.get("/:id/comments", async (req, res, next) => {
             })
         }
 
-        const comments = await prisma.comment.findMany({ where: { reviewId: id } })
+        const comments = await prisma.comment.findMany({
+            where: {
+                reviewId: {
+                    equals: `${id}`
+                }
+            },
+            select: {
+                id: true,
+                text: true,
+                user: {
+                    select: {
+                        username: true,
+                        profilePicture: true
+                    }
+                }
+            }
+        })
+        
         res.json(comments)       
-    } catch {
-        next()
+    } catch (error) {
+        console.error(error)
     }
 })
 
@@ -125,7 +142,7 @@ router.post("/:id/comments", isLoggedIn, async (req, res, next) => {
                 data: {
                     text,
                     review: { connect: { id } },
-                    user: { connect: { userId } }
+                    user: { connect: { id: userId } }
                 }
             })
         )

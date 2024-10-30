@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState, useEffect } from "react"
 import "../App.css"
 
 export default function SearchBar({ setSearchParam }) {
@@ -22,6 +22,4 @@ export default function SearchBar({ setSearchParam }) {
     )
 
 }
-
-export var itemsToDisplay
 

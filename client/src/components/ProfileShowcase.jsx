@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchItemsByUser, fetchReviewsByUser, fetchCommentsByUser } from '../api'
+import ItemList from "./ItemList";
 
 export default function ProfileShowcase({ user }) {
     const [items, setItems] = useState([])
@@ -28,43 +29,8 @@ export default function ProfileShowcase({ user }) {
     }, [])
 
     return (
-        <div id="showcaseContainer">
-            <div id="showcaseItemsContainer">
-                {items.map((item) => {
-                    return (
-                        <div key={item.id}>
-                            <img src={item.image}/>
-                            <div>
-                                <h2>{item.name}</h2>
-                                <p>{item.header}</p>
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
-            <div id="showcaseReviewsContainer">
-                {reviews.map((review) => {
-                    return (
-                        <div key={review.id}>
-                            {user.image && <img src={user.image}/>}
-                            <div>{user.username}</div>
-                            <div>{review.rating}</div>
-                            <div>{review.text}</div>
-                        </div>
-                    )
-                })}
-            </div>
-            <div id="showcaseCommentsContainer">
-                {comments.map((comment) => {
-                    return (
-                        <div key={comment.id}>
-                            {user.image && <img src={user.image}/>}
-                            <div>{user.username}</div>
-                            <div>{comment.text}</div>
-                        </div>
-                    )
-                })}
-            </div>
+        <div>
+            <ItemList items={items}/>
         </div>
     )
 }

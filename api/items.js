@@ -17,7 +17,57 @@ router.get("/", async (req, res, next) => {
     }
 })
 
-// Returns an array of reviews on a certain item
+// Get Single Item
+router.get("/:id", async (req, res, next) => {
+    try {
+        const id = req.params.id
+
+        const item = await prisma.item.findUnique({
+            where: {
+                id
+            },
+            select: {
+                id: true,
+                name: true,
+                image: true,
+                header: true,
+                description: true,
+                averageRating: true,
+                reviews: {
+                    select: {
+                        id: true,
+                        rating: true,
+                        text: true,
+                        user: {
+                            select: {
+                                username: true,
+                                profilePicture: true
+                            }
+                        },
+                        comments: {
+                            select: {
+                                id: true,
+                                text: true,
+                                user: {
+                                    select: {
+                                        username: true,
+                                        profilePicture: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
+        res.json(item)
+    } catch (error) {
+        console.error(error)
+    }
+})
+
+// Get Reviews by Item
 router.get("/:id/reviews", async (req, res, next) => {
     try {
         const id = req.params.id
@@ -30,10 +80,28 @@ router.get("/:id/reviews", async (req, res, next) => {
             })
         }
 
-        const reviews = await prisma.review.findMany({ where: { itemId: id } })
+        const reviews = await prisma.review.findMany({
+            where: {
+                itemId: {
+                    equals: `${id}`
+                }
+            },
+            select: {
+                id: true,
+                rating: true,
+                text: true,
+                user: {
+                    select: {
+                        username: true,
+                        profilePicture: true
+                    }
+                }
+            }
+        })
+
         res.json(reviews)
-    } catch {
-        next()
+    } catch (error) {
+        console.error(error)
     }
 })
 

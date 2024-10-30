@@ -181,6 +181,7 @@ router.post("/:id/items", isLoggedIn, async (req, res, next) => {
 // returns an array of items from a certain user
 router.get("/:id/items", async (req, res, next) => {
     try {
+        console.log("Lincoln")
         const id = req.params.id
 
         const user = await prisma.user.findUnique({ where: { id } })
@@ -212,7 +213,25 @@ router.get("/:id/reviews", async (req, res, next) => {
             })
         }
 
-        const reviews = await prisma.review.findMany({ where: { userId: id } })
+        const reviews = await prisma.review.findMany({
+            where: {
+                userId: {
+                    equals: `${id}`
+                }
+            },
+            select: {
+                id: true,
+                rating: true,
+                text: true,
+                user: {
+                    select: {
+                        username: true,
+                        profilePicture: true
+                    }
+                }
+            }
+        })
+
         res.json(reviews)
     } catch {
         next()
@@ -232,9 +251,26 @@ router.get("/:id/comments", async (req, res, next) => {
             })
         }
 
-        const comments = await prisma.comment.findMany({ where: { userId: id } })
+        const comments = await prisma.comment.findMany({
+            where: {
+                userId: {
+                    equals: `${id}`
+                }
+            },
+            select: {
+                id: true,
+                text: true,
+                user: {
+                    select: {
+                        username: true,
+                        profilePicture: true
+                    }
+                }
+            }
+        })
+        
         res.json(comments)
     } catch (error) {
-        
+        console.error(error)
     }
 })

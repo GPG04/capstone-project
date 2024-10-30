@@ -6,26 +6,29 @@ import { fetchAllItems } from "../api"
 export default function Home() {
     const [items, setItems] = useState([])
     const [searchParam, setSearchParam] = useState("")
-    const [error, setError] = useState(null)
 
     useEffect(() => {
         async function getAllItems() {
-            const response = await fetchAllItems()
-            setItems(response)
+            setItems(await fetchAllItems())
         }
         getAllItems()
     }, [])
+
+    const itemsToDisplay = searchParam
+    ? items.filter((item) =>
+        item.name.toLowerCase().includes(searchParam)
+    )
+        : items
 
     return (
         <>
             <div>
                 <SearchBar
-                searchParam={searchParam}
-                setSearchParam={setSearchParam}/>
-                <ItemList 
-                items={items}
-                searchParam={searchParam}
-                error={error}/>
+                setSearchParam={setSearchParam}
+                />
+                <ItemList
+                items={itemsToDisplay}
+                />
             </div>
         </>
     )

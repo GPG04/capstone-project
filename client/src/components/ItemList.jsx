@@ -1,20 +1,20 @@
 import React from 'react'
-import ListItem from './ListItem'
 
-export default function ItemList({ items, searchParam, error }) {
-
-    const itemsToDisplay = searchParam
-    ? items.filter((item) =>
-    item.name.toLowerCase().includes(searchParam)
-    )
-    : items
+export default function ItemList({ items }) {
 
     return (
         <>
-            {error && <p>{error}</p>}
             <div id="itemList">
-            {itemsToDisplay.map((item) => {
-                return <ListItem key={item.id} item={item} />
+            {items.map((item) => {
+                return (
+                    <div key={item.id} className="itemDiv">
+                    <img src={item.image} alt="image" className="itemImg"/>
+                    <div className="itemInfo">
+                        <h2 className="itemName">{item.name}</h2>
+                        <p className="itemHeader">{item.header}</p>
+                    </div>
+                </div> 
+                )
         })}
             </div>
         </>
