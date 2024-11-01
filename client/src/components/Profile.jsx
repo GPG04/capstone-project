@@ -14,7 +14,6 @@ export default function Profile({ auth }) {
         async function getSingleUser() {
             const response = await fetchSingleUser( id )
             setUser(response)
-            console.log(user)
         }
 
         function isAuthorized() {

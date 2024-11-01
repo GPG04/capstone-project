@@ -60,7 +60,7 @@ router.get("/:id", async (req, res, next) => {
                 }
             }
         })
-
+        
         res.json(item)
     } catch (error) {
         console.error(error)
